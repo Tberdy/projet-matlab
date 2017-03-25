@@ -22,6 +22,9 @@ function varargout = GUI_Interface(varargin)
 
 % Edit the above text to modify the response to help GUI_Interface
 
+% include effects
+addpath('./effects/');
+
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -362,6 +365,17 @@ function close_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 close all;
 
+% Sauvegarde de la piste audio modifiée
+% --- Executes on button press in save.
+function save_Callback(hObject, eventdata, handles)
+% hObject    handle to save (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[file_name,path_name]=uiputfile('.wav','Sauvegarde la piste audio modifiée','nouveau.wav');
+wave_path=fullfile(path_name,file_name);
+audiowrite(wave_path,handles.y2,handles.Fs2);
+msgbox('La piste audio a été sauvegardée avec succès.');
+
 % Callback du sélecteur des échantillons audio
 % --- Executes on selection change in popupmenu1.
 function popupmenu1_Callback(hObject, eventdata, handles)
@@ -378,14 +392,16 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 choice=get(hObject,'Value');
 switch choice 
     case 2
-        [y,Fs]=audioread('samples/guitar.wav');        
+        filename='samples/guitar.wav';
     case 3
-        [y,Fs]=audioread('samples/instruments.wav');        
+        filename='samples/instruments.wav';        
     case 4
-        [y,Fs]=audioread('samples/piano.wav');
+        filename='samples/piano.wav';
     case 5
-        [y,Fs]=audioread('samples/violant.wav');      
+        filename='samples/violant.wav';      
 end
+set(handles.path,'String',filename);
+[y,Fs]=audioread(filename);
 handles.y1=y;
 handles.y2=y;
 handles.Fs=Fs;
@@ -414,8 +430,9 @@ function temporal_display_Callback(hObject, eventdata, handles)
 
 % Affichage des signaux en mode temporel.
 % 1. On met à 0 la valeur du sélecteur du mode fréquentiel
-% 2. On sélectionne le graphe de la poste originale 
+% 2. On sélectionne le graphe de la piste originale 
 % 3. On affiche les données audio sur la graphe
+% 4. On renvoit le buffer au GUI
 set(handles.frequencial_display,'Value',0);
 axes(handles.original_wave_axes)
 plot(handles.y1);
@@ -432,639 +449,316 @@ ylabel('Amplitude');
 set(handles.modified_wave_axes,'XColor',[1 1 1]);
 set(handles.modified_wave_axes,'YColor',[1 1 1]);
 
-
-% --- Executes on button press in radiobutton2.
-function radiobutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to radiobutton2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of radiobutton2
-
-
-% --- Executes on slider movement.
-function slider3_Callback(hObject, eventdata, handles)
-% hObject    handle to slider3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
-function slider3_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
-function slider2_Callback(hObject, eventdata, handles)
-% hObject    handle to slider2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
-function slider2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
-function slider_echo_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_echo (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_echo,'Value');
-s = num2str(value_slider);
-set(handles.text_value_echo,'String',s);
-
-% --- Executes during object creation, after setting all properties.
-function slider_echo_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_echo (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-%EFFET ECHO
-% --- Executes on button press in echo.
-function echo_Callback(hObject, eventdata, handles)
-% hObject    handle to echo (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Recupération des données de la musique
-y2=handles.y2;
-%Récupération du positionnement du slider!
-value_slider = get(handles.slider_echo,'Value');
-
-%Appelle de la fonction pour le filtre et change les valeurs du data et du
-%rate de la musique wav.
-value_data = echoEffect(y2, handles.Fs ,value_slider);
-%On recopie de nouveau dans les données !
-handles.y2= value_data;
-
-%On enregistre toutes ses nouvelles données!
 guidata(hObject,handles); 
 
-set(handles.text_echo,'String','ON');
-set(handles.text_echo,'backgroundcolor',[0.1 .7 0]);
-
-% --- Executes on slider movement.
-function slider_distortion_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_distortion (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_distortion,'Value');
-s = num2str(value_slider);
-set(handles.text_value_distortion,'String',s);
-
-% --- Executes during object creation, after setting all properties.
-function slider_distortion_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_distortion (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-%EFFET DISTORTION
-% --- Executes on button press in distortion.
-function distortion_Callback(hObject, eventdata, handles)
-% hObject    handle to distortion (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Recupération des données de la musique
-y2=handles.y2;
-%Récupération du positionnement du slider!
-value_slider = get(handles.slider_distortion,'Value');
-value_slider2 = get(handles.slider_distortion2,'Value');
-
-%Appel de la fonction pour le filtre et change les valeurs du data et du
-%rate de la musique wav.
-value_data = distortion(y2, handles.Fs ,value_slider,value_slider2);
-%On recopie de nouveau dans les données !
-handles.y2= value_data;
-
-%On enregistre toutes ses nouvelles données!
-guidata(hObject,handles);
-
-set(handles.text_distortion,'String','ON');
-set(handles.text_distortion,'backgroundcolor',[0.1 .7 0]);
-
-% --- Executes on slider movement.
-function slider_flanger_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_flanger (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_flanger,'Value');
-s = num2str(value_slider);
-set(handles.text_value_flanger,'String',s);
-
-% --- Executes during object creation, after setting all properties.
-function slider_flanger_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_flanger (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-%EFFET FLANGER
-% --- Executes on button press in flanger.
-function flanger_Callback(hObject, eventdata, handles)
-% hObject    handle to flanger (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Recupération des données de la musique
-y2 = handles.y2;
-%Récupération du positionnement du slider!
-value_slider = get(handles.slider_flanger,'Value');
-value_slider2 = get(handles.slider_flanger2,'Value');
-
-%Appelle de la fonction pour le filtre et change les valeurs du data et du
-%rate de la musique wav.
-value_data = flanger(y2, handles.Fs , value_slider , value_slider2);
-%On recopie de nouveau dans les données !
-handles.y2= value_data;
-
-%On enregistre toutes ses nouvelles données!
-guidata(hObject,handles); 
-
-set(handles.text_flanger,'String','ON');
-set(handles.text_flanger,'backgroundcolor',[0.1 .7 0]);
-
-%AFFICHAGE FREQUENTIEL
+% Affichage des signaux en mode fréquenciel.
 % --- Executes on button press in frequencial_display.
 function frequencial_display_Callback(hObject, eventdata, handles)
 % hObject    handle to frequencial_display (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% Affichage des signaux en mode fréquenciel.
+% 1. On met à 0 la valeur du sélecteur du mode temporel
+% 2. On calcule la fréquence d'échantillonnage
+% 3. On réalise la transformée de Fourrier des données audio de la piste
+% 4. On sélectionne le graphe de la piste originale 
+% 5. On affiche la fréquence d'échantillonnage en fonction de la valeur 
+% absolue de la TF des données audio sur la graphe
+% 6. On légende les axes
+% 7. On renvoit le buffer au GUI
+
 set(handles.temporal_display,'Value',0);
-%Courbe sans effet
+
 n = length(handles.y1) -1;  
-F=0:handles.Fs/n:handles.Fs; %sampling frequency
+F = 0:handles.Fs / n:handles.Fs; 
 Y = abs(fft(handles.y1));%fourier transform en valeur absolu
 
 axes(handles.original_wave_axes)
-plot(F,Y); %On affiche l'affichage fréquentielle
+plot(F,Y);
 xlabel('Frequency in Hz');
 ylabel('Magnitude in dB');
 set(handles.original_wave_axes,'XColor',[1 1 1]);
 set(handles.original_wave_axes,'YColor',[1 1 1]);
 
-%Courbe avec effet
+% On fait la même chose pour le graphe de la piste modifiée
 n = length(handles.y2) -1; 
-F2=0:handles.Fs2/n:handles.Fs2;
+F2 = 0:handles.Fs2 / n:handles.Fs2;
 Y2 = abs(fft(handles.y2));
-%L'axe modifié par l'effet
+
 axes(handles.modified_wave_axes)
-plot(F2,Y2); %idem que pour la première courbe
+plot(F2,Y2);
 xlabel('Frequency in Hz');
 ylabel('Magnitude in dB');
 set(handles.modified_wave_axes,'XColor',[1 1 1]);
 set(handles.modified_wave_axes,'YColor',[1 1 1]);
-%On enregistre toutes ses nouvelles données!
-guidata(hObject,handles); 
-% Hint: get(hObject,'Value') returns toggle state of frequencial_display
 
-%EFFET TREMOLO
-% --- Executes on button press in tremolo.
-function tremolo_Callback(hObject, eventdata, handles)
-% hObject    handle to tremolo (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Recupération des données de la musique
-y2=handles.y2;
-%Récupération du positionnement du slider!
-value_slider = get(handles.slider_tremolo,'Value');
-value_slider2 = get(handles.slider_tremolo2,'Value');
-
-%Appelle de la fonction pour le filtre et change les valeurs du data et du
-%rate de la musique wav.
-value_data = tremolo(y2, handles.Fs ,value_slider,value_slider2);
-%On recopie de nouveau dans les données !
-handles.y2= value_data;
-
-%On enregistre toutes ses nouvelles données!
 guidata(hObject,handles); 
 
-set(handles.text_tremolo,'String','ON');
-set(handles.text_tremolo,'backgroundcolor',[0.1 .7 0]);
 
+
+% Pour toutes les fonctions callback des différents slider 
+% 1. On récupère la valeur du slider 
+% 2. On la convertit au format texte et on actualise l'affichage de la
+% valeur du slider
+
+%%% SLIDER ECHO
 % --- Executes on slider movement.
-function slider_tremolo_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_tremolo (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_tremolo,'Value');
-s = num2str(value_slider);
-set(handles.text_value_tremolo,'String',s);
-
+function slider_echo_Callback(hObject, eventdata, handles)
+data = get(handles.slider_echo,'Value');
+set(handles.text_value_echo,'String',num2str(data));
 % --- Executes during object creation, after setting all properties.
-function slider_tremolo_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_tremolo (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
+function slider_echo_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-%EFFET AMPLIFICATION
-% --- Executes on button press in amplification.
-function amplification_Callback(hObject, eventdata, handles)
-% hObject    handle to amplification (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Recupération des données de la musique
-y2=handles.y2;
-%Récupération du positionnement du slider!
-value_slider = get(handles.slider_amplification,'Value');
-
-%Appelle de la fonction pour le filtre et change les valeurs du data et du
-%rate de la musique wav.
-value_data = amplification(y2, value_slider);
-%On recopie de nouveau dans les données !
-handles.y2= value_data;
-
-%On enregistre toutes ses nouvelles données!
-guidata(hObject,handles); 
-
-set(handles.text_amplification,'String','ON');
-set(handles.text_amplification,'backgroundcolor',[0.1 .7 0]);
-
+%%% SLIDERS DISTORTION
 % --- Executes on slider movement.
-function slider_amplification_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_amplification (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_amplification,'Value');
-s = num2str(value_slider);
-set(handles.text_value_amplification,'String',s);
-
+function slider_distortion_Callback(hObject, eventdata, handles)
+data = get(handles.slider_distortion,'Value');
+set(handles.text_value_distortion,'String',num2str(data));
 % --- Executes during object creation, after setting all properties.
-function slider_amplification_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_amplification (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
+function slider_distortion_CreateFcn(hObject, eventdata, handles)
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+% --- Executes on slider movement.
+function slider_distortion2_Callback(hObject, eventdata, handles)
+data = get(handles.slider_distortion2,'Value');
+set(handles.text_value_distortion2,'String',num2str(data));
+% --- Executes during object creation, after setting all properties.
+function slider_distortion2_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-%EFFET ATTENUATION
-% --- Executes on button press in attenuation.
-function attenuation_Callback(hObject, eventdata, handles)
-% hObject    handle to attenuation (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% Recupération des données de la musique
-
-y2=handles.y2;
-%Récupération du positionnement du slider!
-value_slider = get(handles.slider_attenuation,'Value');
-
-%Appelle de la fonction pour le filtre et change les valeurs du data et du
-%rate de la musique wav.
-value_data = attenuation(y2, value_slider);
-%On recopie de nouveau dans les données !
-handles.y2= value_data;
-
-%On enregistre toutes ses nouvelles données!
-guidata(hObject,handles); 
-
-%On change l'affichage en ON !
-set(handles.text_attenuation,'String','ON');
-set(handles.text_attenuation,'backgroundcolor',[0.1 .7 0]);
-
-
-
+%%% SLIDERS FLANGER
 % --- Executes on slider movement.
-function slider_attenuation_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_attenuation (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_attenuation,'Value');
-s = num2str(value_slider);
-set(handles.text_value_attenuation,'String',s);
-
+function slider_flanger_Callback(hObject, eventdata, handles)
+data = get(handles.slider_flanger,'Value');
+set(handles.text_value_flanger,'String',num2str(data));
 % --- Executes during object creation, after setting all properties.
-function slider_attenuation_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_attenuation (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
+function slider_flanger_CreateFcn(hObject, eventdata, handles)
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+% --- Executes on slider movement.
+function slider_flanger2_Callback(hObject, eventdata, handles)
+data = get(handles.slider_flanger2,'Value');
+set(handles.text_value_flanger2,'String',num2str(data));
+% --- Executes during object creation, after setting all properties.
+function slider_flanger2_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-
-% --- Executes on button press in filter_2.
-function filter_2_Callback(hObject, eventdata, handles)
-% hObject    handle to filter_2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
+%%% SLIDERS WOBBLE
 % --- Executes on slider movement.
-function slider_filter2_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_filter2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_filter2,'Value');
-s = num2str(value_slider);
-set(handles.text_mid,'String',s);
-
+function slider_wobble_Callback(hObject, eventdata, handles)
+data = get(handles.slider_wobble,'Value');
+set(handles.text_value_wobble,'String',num2str(data));
 % --- Executes during object creation, after setting all properties.
-function slider_filter2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_filter2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
+function slider_wobble_CreateFcn(hObject, eventdata, handles)
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+% --- Executes on slider movement.
+function slider_wobble2_Callback(hObject, eventdata, handles)
+data = get(handles.slider_wobble2,'Value');
+set(handles.text_value_wobble2,'String',num2str(data));
+% --- Executes during object creation, after setting all properties.
+function slider_wobble2_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-
-% --- Executes on button press in pushbutton10.
-function pushbutton10_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton10 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
+%%% SLIDERS FILTERS
 % --- Executes on slider movement.
 function slider_filter1_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_filter1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_filter1,'Value');
-s = num2str(value_slider);
-set(handles.text_low,'String',s);
-
+data = get(handles.slider_filter1,'Value');
+set(handles.text_low,'String',num2str(data));
 % --- Executes during object creation, after setting all properties.
 function slider_filter1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_filter1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+% --- Executes on slider movement.
+function slider_filter2_Callback(hObject, eventdata, handles)
+data = get(handles.slider_filter2,'Value');
+set(handles.text_mid,'String',num2str(data));
+% --- Executes during object creation, after setting all properties.
+function slider_filter2_CreateFcn(hObject, eventdata, handles)
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+% --- Executes on slider movement.
+function slider_filter3_Callback(hObject, eventdata, handles)
+data = get(handles.slider_filter3,'Value');
+set(handles.text_high,'String',num2str(data));
+% --- Executes during object creation, after setting all properties.
+function slider_filter3_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-%EFFET WOBBLE
+%%% SLIDER ATTENUATION
+% --- Executes on slider movement.
+function slider_attenuation_Callback(hObject, eventdata, handles)
+data = get(handles.slider_attenuation,'Value');
+set(handles.text_value_attenuation,'String',num2str(data));
+% --- Executes during object creation, after setting all properties.
+function slider_attenuation_CreateFcn(hObject, eventdata, handles)
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+%%% SLIDER AMPLIFICATION
+% --- Executes on slider movement.
+function slider_amplification_Callback(hObject, eventdata, handles)
+data = get(handles.slider_amplification,'Value');
+set(handles.text_value_amplification,'String',num2str(data));
+% --- Executes during object creation, after setting all properties.
+function slider_amplification_CreateFcn(hObject, eventdata, handles)
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+%%% SLIDERS TREMOLO
+% --- Executes on slider movement.
+function slider_tremolo_Callback(hObject, eventdata, handles)
+data = get(handles.slider_tremolo,'Value');
+set(handles.text_value_tremolo,'String',num2str(data));
+% --- Executes during object creation, after setting all properties.
+function slider_tremolo_CreateFcn(hObject, eventdata, handles)
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+% --- Executes on slider movement.
+function slider_tremolo2_Callback(hObject, eventdata, handles)
+data = get(handles.slider_tremolo2,'Value');
+set(handles.text_value_tremolo2,'String',num2str(data));
+% --- Executes during object creation, after setting all properties.
+function slider_tremolo2_CreateFcn(hObject, eventdata, handles)
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+
+% Pour les fonctions callback des effets 
+% 1. On récupère les données audio
+% 2. On récupère les valeur des sliders de l'effet pour avoir la force
+% souhaitée
+% 3. On appelle la fonction echo avec les données audio, le taux
+% d'échantillonnage et la force de l'effet
+% 4. On copie les données retournées par la fonction dans le buffer et on
+% renvoit le buffer au GUI
+
+% Callback de l'effet echo
+% --- Executes on button press in echo.
+function echo_Callback(hObject, eventdata, handles)
+y2=handles.y2;
+data = get(handles.slider_echo,'Value');
+new_data = echoEffect(y2, handles.Fs2 ,data);
+handles.y2= new_data;
+guidata(hObject,handles);
+set(handles.text_echo,'String','ON');
+set(handles.text_echo,'backgroundcolor',[0.1 .7 0]);
+
+% Callback de l'effet distortion
+% --- Executes on button press in distortion.
+function distortion_Callback(hObject, eventdata, handles)
+y2=handles.y2;
+value_slider = get(handles.slider_distortion,'Value');
+value_slider2 = get(handles.slider_distortion2,'Value');
+new_data = distortion(y2, handles.Fs ,value_slider,value_slider2);
+handles.y2= new_data;
+guidata(hObject,handles);
+set(handles.text_distortion,'String','ON');
+set(handles.text_distortion,'backgroundcolor',[0.1 .7 0]);
+
+% Callback de l'effet flanger
+% --- Executes on button press in flanger.
+function flanger_Callback(hObject, eventdata, handles)
+y2 = handles.y2;
+value_slider = get(handles.slider_flanger,'Value');
+value_slider2 = get(handles.slider_flanger2,'Value');
+new_data = flanger(y2, handles.Fs , value_slider , value_slider2);
+handles.y2= new_data;
+guidata(hObject,handles); 
+set(handles.text_flanger,'String','ON');
+set(handles.text_flanger,'backgroundcolor',[0.1 .7 0]);
+
+% Callback de l'effet wobble
 % --- Executes on button press in wobble.
 function wobble_Callback(hObject, eventdata, handles)
-% hObject    handle to wobble (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
 y2=handles.y2;
-%Récupération du positionnement du slider!
 value_slider = get(handles.slider_wobble,'Value');
 value_slider2 = get(handles.slider_wobble2,'Value');
-
-%Appelle de la fonction pour le filtre et change les valeurs du data et du
-%rate de la musique wav.
 value_data = wobble(y2, handles.Fs, value_slider,value_slider2);
-%On recopie de nouveau dans les données !
 handles.y2= value_data;
-
-%On enregistre toutes ses nouvelles données!
 guidata(hObject,handles); 
-
 set(handles.text_wobble,'String','ON');
 set(handles.text_wobble,'backgroundcolor',[0.1 .7 0]);
 
-% --- Executes on slider movement.
-function slider_wobble_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_wobble (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_wobble,'Value');
-s = num2str(value_slider);
-set(handles.text_value_wobble,'String',s);
-
-% --- Executes during object creation, after setting all properties.
-function slider_wobble_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_wobble (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-%LOW MID ET HIGH FILTER (les 3 en meme temps)
+% Callback des fltres passe bas, medium et haut
 % --- Executes on button press in filter_1.
 function filter_1_Callback(hObject, eventdata, handles)
-% hObject    handle to filter_1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% Recupération des données de la musique
 y2=handles.y2;
-%Récupération du positionnement du slider!
 value_slider = get(handles.slider_filter1,'Value');
 value_slider2 = get(handles.slider_filter2,'Value');
 value_slider3 = get(handles.slider_filter3,'Value');
-
-%Appelle de la fonction pour le filtre et change les valeurs du data et du
-%rate de la musique wav.
 value_data = filter1(y2, handles.Fs2 ,value_slider, value_slider2, value_slider3,handles);
-%On recopie de nouveau dans les données !
 handles.y2= value_data;
-
-%On enregistre toutes ses nouvelles données!
 guidata(hObject,handles); 
-
-%On change l'affichage en ON !
 set(handles.text_filter1,'String','ON');
 set(handles.text_filter1,'backgroundcolor',[0.1 .7 0]);
 
-%BOUTTON SAUVEGARDE DU FICHIER WAV
-% --- Executes on button press in save.
-function save_Callback(hObject, eventdata, handles)
-% hObject    handle to save (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-[file_name,path_name]=uiputfile('.wave','Save the new sound file','new_music.wav');
-wave_path=fullfile(path_name,file_name);
-audiowrite(wave_path,handles.y2,handles.Fs2);
+% Callback de l'effet atténuation
+% --- Executes on button press in attenuation.
+function attenuation_Callback(hObject, eventdata, handles)
+y2=handles.y2;
+value_slider = get(handles.slider_attenuation,'Value');
+new_data = attenuation(y2, value_slider);
+handles.y2= new_data;
+guidata(hObject,handles); 
+set(handles.text_attenuation,'String','ON');
+set(handles.text_attenuation,'backgroundcolor',[0.1 .7 0]);
 
-%NE MARCHE QUE SI ON A IMPORTE LA LIB DE MATLAB
-%export_fig(handles.modified_wave_axes, 'modifiedWave.png');
-%export_fig(handles.original_wave_axes, 'OriginalWave.png');
-%export_fig(handles.bode_axes, 'bodeWave.png');
+% Callback de l'effet amplification
+% --- Executes on button press in amplification.
+function amplification_Callback(hObject, eventdata, handles)
+y2=handles.y2;
+value_slider = get(handles.slider_amplification,'Value');
+new_data = amplification(y2, value_slider);
+handles.y2= new_data;
+guidata(hObject,handles); 
+set(handles.text_amplification,'String','ON');
+set(handles.text_amplification,'backgroundcolor',[0.1 .7 0]);
 
-msgbox('The sound is Saved. Please select and play another sound.','Saved');
-
-% --- Executes on slider movement.
-function slider_tremolo2_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_tremolo2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_tremolo2,'Value');
-s = num2str(value_slider);
-set(handles.text_value_tremolo2,'String',s);
-
-% --- Executes during object creation, after setting all properties.
-function slider_tremolo2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_tremolo2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
+% Callback de l'effet tremolo
+% --- Executes on button press in tremolo.
+function tremolo_Callback(hObject, eventdata, handles)
+y2=handles.y2;
+value_slider = get(handles.slider_tremolo,'Value');
+value_slider2 = get(handles.slider_tremolo2,'Value');
+new_data = tremolo(y2, handles.Fs ,value_slider,value_slider2);
+handles.y2= new_data;
+guidata(hObject,handles); 
+set(handles.text_tremolo,'String','ON');
+set(handles.text_tremolo,'backgroundcolor',[0.1 .7 0]);
 
 
-% --- Executes on slider movement.
-function slider_distortion2_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_distortion2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_distortion2,'Value');
-s = num2str(value_slider);
-set(handles.text_value_distortion2,'String',s);
-
-% --- Executes during object creation, after setting all properties.
-function slider_distortion2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_distortion2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
 
 
-% --- Executes on slider movement.
-function slider_flanger2_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_flanger2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_flanger2,'Value');
-s = num2str(value_slider);
-set(handles.text_value_flanger2,'String',s);
-
-% --- Executes during object creation, after setting all properties.
-function slider_flanger2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_flanger2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
-function slider16_Callback(hObject, eventdata, handles)
-% hObject    handle to slider16 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
-function slider16_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider16 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-%SLIDER POUR LA DECELERATION DE LA MUSIQUE
+% Décélération de la piste audio
 % --- Executes on slider movement.
 function slider_deceleration_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_deceleration (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-%Récupération du positionnement du slider!
+% 1. Récupération de l'arrondi de la valeur du slider
 value_slider = get(handles.slider_deceleration,'Value');
+msgbox(num2str(value_slider));
 value_slider = round(value_slider);
 %Appelle de la fonction pour le filtre et change les valeurs du data et du
 %rate de la musique wav. On prend FS cette fois ci ! 
@@ -1073,31 +767,19 @@ value_data = filter(1,value_slider,handles.Fs);
 handles.Fs2= value_data;
 
 s = num2str(value_slider);
-s1 = strcat('Deceleration :','  /', s);
+s1 = strcat('Décélération :','  /', s);
 set(handles.text_deceleration,'String',s1);
 %On enregistre toutes ses nouvelles données!
 guidata(hObject,handles);
-
 % --- Executes during object creation, after setting all properties.
 function slider_deceleration_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_deceleration (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
-%SLIDER DE LACCELERATION
+% Accélération de la piste audio
 % --- Executes on slider movement.
 function slider_acceleration_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_acceleration (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
 %Récupération du positionnement du slider!
 value_slider = get(handles.slider_acceleration,'Value');
@@ -1114,64 +796,8 @@ s1 = strcat('Acceleration :','  x', s);
 set(handles.text_acceleration,'String',s1);
 %On enregistre toutes ses nouvelles données!
 guidata(hObject,handles);
-
-
-
 % --- Executes during object creation, after setting all properties.
 function slider_acceleration_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_acceleration (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
-function slider_filter3_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_filter3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_filter3,'Value');
-s = num2str(value_slider);
-set(handles.text_high,'String',s);
-
-% --- Executes during object creation, after setting all properties.
-function slider_filter3_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_filter3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-% --- Executes on slider movement.
-function slider_wobble2_Callback(hObject, eventdata, handles)
-% hObject    handle to slider_wobble2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-value_slider = get(handles.slider_wobble2,'Value');
-s = num2str(value_slider);
-set(handles.text_value_wobble2,'String',s);
-
-% --- Executes during object creation, after setting all properties.
-function slider_wobble2_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider_wobble2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
