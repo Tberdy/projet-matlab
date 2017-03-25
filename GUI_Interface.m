@@ -264,24 +264,39 @@ function reset_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 %on supprime les graphes et on arrete la musique
+
+% Réinitialisation de l'interface 
+% 1. On arrête la lecture
+% 2. On détruit l'instance de l'audioplayer
+% 3. On efface les graphes
+% 4. On reconfigure la couleur des graphes
 stop(handles.player);
+delete(handles.player);
 cla(handles.original_wave_axes,'reset');
 cla(handles.modified_wave_axes,'reset');
 set(handles.original_wave_axes,'XColor',[1 1 1]);
 set(handles.original_wave_axes,'YColor',[1 1 1]);
 set(handles.modified_wave_axes,'XColor',[1 1 1]);
 set(handles.modified_wave_axes,'YColor',[1 1 1]);
+
+% Bode
 cla(handles.bode_axes,'reset');
 set(handles.bode_axes,'XColor',[1 1 1]);
 set(handles.bode_axes,'YColor',[1 1 1]);
 
-%On Réinitialise toutes les données son à 0.
-handles.y2 = handles.y1;
-guidata(hObject,handles);
+% Pole Zero
+cla(handles.polezero_axes,'reset');
+set(handles.polezero_axes,'XColor',[1 1 1]);
+set(handles.polezero_axes,'YColor',[1 1 1]);
 
-handles.path.String ='Path'; %On supprime le String
+%On Réinitialise toutes les données son à 0.
+handles.y1=0;
+handles.y2=0
+% On réinitialise le chemin du fichier .wav
+handles.path.String ='Path';
+guidata(hObject,handles);
             
-%Affichage des filtres reset en OFF:
+% On réinitialise l'affichage de l'activation des filtres
 set(handles.text_echo,'String','OFF');
 set(handles.text_echo,'backgroundcolor',[0.5 0.5 .5]);
 set(handles.text_tremolo,'String','OFF');
@@ -299,7 +314,7 @@ set(handles.text_distortion,'backgroundcolor',[0.5 0.5 .5]);
 set(handles.text_filter1,'String','OFF');
 set(handles.text_filter1,'backgroundcolor',[0.5 0.5 .5]);
 
-%Reset les sliders à leurs positions intial
+% On réinitialise les sliders à leurs positions initiales
 set(handles.slider_amplification, 'Value', 1);
 set(handles.slider_attenuation, 'Value', 1);
 set(handles.slider_tremolo, 'Value', 0.1);
@@ -317,7 +332,7 @@ set(handles.slider_wobble2, 'Value', 0.3);
 set(handles.slider_acceleration, 'Value', 1);
 set(handles.slider_deceleration, 'Value', 1);
 
-%On reset l'affichage des sliders
+% On réinitialise l'affichage des valeurs des sliders
 set(handles.text_value_amplification,'String','1');
 set(handles.text_value_attenuation,'String','1');
 set(handles.text_value_tremolo,'String','0.1');
@@ -335,67 +350,47 @@ set(handles.text_value_wobble2,'String','0.2');
 set(handles.text_acceleration,'String','Acceleration :');
 set(handles.text_deceleration,'String','Deceleration :');
 
+% On réinitialise le sélecteur 
+set(handles.popupmenu1, 'Value', 1);
 
-msgbox('The sound is Reset. Please select and play another sound.','Reset Message');
 
-
-%FERMER LAPPLICATION
+% Sortie de l'application
 % --- Executes on button press in close.
 function close_Callback(hObject, eventdata, handles)
 % hObject    handle to close (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-C=warndlg('Thank you, see you soon! <3','Closing the App'); %Pop-Up pour fermer l'appli !
-uiwait(C); %on attends pour fermer que l'utilisateur termine l'action.
 close all;
 
-%SELECTION DANS LE MINI MENU
+% Callback du sélecteur des échantillons audio
 % --- Executes on selection change in popupmenu1.
 function popupmenu1_Callback(hObject, eventdata, handles)
 % hObject    handle to popupmenu1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu1 contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from popupmenu1
+% 1. Récupération du choix de l'utilisateur 
+% 2. Lecture du fichier pour récupérer le taux d'échantillonnage Fs et les
+% données audio y
+% 3. On stocke ces données dans le buffer en double, pour avoir les données
+% originales et les données que l'on modifiera
+% 4. On renvoit le buffer à l'interface (GUI) 
 choice=get(hObject,'Value');
-
-%Choix pour l'utilisateur! il peut choisir plusieurs musiques. Les musiques
-%une fois initialiser sont stocké en mémoire pour pouvoir les modifier.
 switch choice 
     case 2
-        [y,Fs]=audioread('samples/guitar.wav');
-        handles.y1=y;
-        handles.y2=y;
-        handles.Fs=Fs;
-        handles.Fs2=Fs;
-        guidata(hObject,handles); 
-        
+        [y,Fs]=audioread('samples/guitar.wav');        
     case 3
-        [y,Fs]=audioread('samples/instruments.wav');
-        handles.y1=y;
-        handles.y2=y;
-        handles.Fs=Fs;
-        handles.Fs2=Fs;
-        guidata(hObject,handles); 
-        
+        [y,Fs]=audioread('samples/instruments.wav');        
     case 4
         [y,Fs]=audioread('samples/piano.wav');
-        handles.y1=y;
-        handles.y2=y;
-        handles.Fs=Fs;
-        handles.Fs2=Fs;
-        guidata(hObject,handles); 
-        
     case 5
-        [y,Fs]=audioread('samples/violant.wav');
-        handles.y1=y;
-        handles.y2=y;
-        handles.Fs=Fs;
-        handles.Fs2=Fs;
-        guidata(hObject,handles); 
-        
+        [y,Fs]=audioread('samples/violant.wav');      
 end
+handles.y1=y;
+handles.y2=y;
+handles.Fs=Fs;
+handles.Fs2=Fs;
+guidata(hObject,handles);
 
 % --- Executes during object creation, after setting all properties.
 function popupmenu1_CreateFcn(hObject, eventdata, handles)
@@ -410,27 +405,32 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-%AFFICHAGE TEMPOREL
+% Affichage des signaux en mode temporel.
 % --- Executes on button press in temporal_display.
 function temporal_display_Callback(hObject, eventdata, handles)
 % hObject    handle to temporal_display (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-%Affichage des signaux en temporelle.
-set(handles.frequencial_display,'Value',0); %On remet à 0 le boutton radio des affichages fréquences
+
+% Affichage des signaux en mode temporel.
+% 1. On met à 0 la valeur du sélecteur du mode fréquentiel
+% 2. On sélectionne le graphe de la poste originale 
+% 3. On affiche les données audio sur la graphe
+set(handles.frequencial_display,'Value',0);
 axes(handles.original_wave_axes)
 plot(handles.y1);
-xlabel('Time'); %On nomme les axes
+xlabel('Time');
 ylabel('Amplitude');
 set(handles.original_wave_axes,'XColor',[1 1 1]);
 set(handles.original_wave_axes,'YColor',[1 1 1]);
+
+% On fait la même chose pour le graphe du son modifié
 axes(handles.modified_wave_axes)
 plot(handles.y2);
 xlabel('Time');
 ylabel('Amplitude');
 set(handles.modified_wave_axes,'XColor',[1 1 1]);
 set(handles.modified_wave_axes,'YColor',[1 1 1]);
-% Hint: get(hObject,'Value') returns toggle state of temporal_display
 
 
 % --- Executes on button press in radiobutton2.
