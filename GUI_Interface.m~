@@ -170,7 +170,7 @@ handles.Fs=Fs;
 handles.Fs2=Fs;
 guidata(hObject,handles); 
     
-% Lancement d'une piste audio en mode normal
+%POUR LANCER UNE MUSIQUE
 % --- Executes on button press in play.
 function play_Callback(hObject, eventdata, handles)
 % hObject    handle to play (see GCBO)
@@ -180,20 +180,15 @@ function play_Callback(hObject, eventdata, handles)
 % Lecture de la piste audio
 % 1. On recupère les données audio (y) et le taux d'échantillonnage (Fs) depuis le
 % buffer 
-% 2. On crée un objet de type audioplayer pour jouer notre piste audio
-% 3. On lance la piste audio
-% 4. On renvoit le buffer au GUI
+% 2. On crée un objet de type Audio Pl
+
 y=handles.y1; 
 Fs=handles.Fs; 
-handles.player=audioplayer(y,Fs);
-play(handles.player);
-guidata(hObject,handles);
+handles.player=audioplayer(y,Fs); %On stocke en mémoire dans le sub class handle l'audio_player
+play(handles.player); %Fonction permettant de jouer une musique
+guidata(hObject,handles); %On renvoit les nouvelles données à l'ensemble du GUI! Pour pouvoir les utiliser ailleurs!
 
-% Affichage des données audio
-% 1. On sélectionne le graphe original_wave
-% 2. On affiche les données audio
-% 3. On légende le graphe
-% 4. On met de la couleur
+%On plot la musique sur notre axe du haut !
 axes(handles.original_wave_axes)
 plot(y);
 xlabel('Time');
@@ -211,26 +206,15 @@ set(handles.original_wave_axes,'YColor',[1 1 1]);
 function play_effect_Callback(hObject, eventdata, handles)
 % hObject    handle to play_effect (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% Lecture de la piste audio
-% 1. On recupère les données audio (y) et le taux d'échantillonnage (Fs) depuis le
-% buffer 
-% 2. On crée un objet de type audioplayer pour jouer notre piste audio
-% 3. On lance la piste audio
-% 4. On renvoit le buffer au GUI
+% handles    structure with handles and user data (see GUIDATA)m
+%Rejouer la musique avec l'effet !
 handles.player=audioplayer(handles.y2,handles.Fs2); %On stocke en mémoire dans le sub class handle l'audio_player
 play(handles.player);%On joue la musique modifié par les effets.
 set(handles.frequencial_display,'Value',0); %on met par defaut à 0 l'affichage en fréquence.
 set(handles.temporal_display,'Value',1); %On affiche l'affichage temporelle.
 guidata(hObject,handles);
 
-% Affichage des données audio
-% 1. On sélectionne le graphe original_wave
-% 2. On affiche les données audio
-% 3. On légende le graphe
-% 4. On met de la couleur
+%Affichage de la nouvelle wave form !!
 axes(handles.modified_wave_axes)
 plot(handles.y2);
 xlabel('Time');
@@ -238,10 +222,10 @@ ylabel('Amplitude');
 set(handles.modified_wave_axes,'XColor',[1 1 1]);
 set(handles.modified_wave_axes,'YColor',[1 1 1]);
 
+
 guidata(hObject,handles);
 
-
-% Mettre la lecture en pause
+%POUR METTRE EN STOP LA MUSIQUE
 % --- Executes on button press in pause.
 function pause_Callback(hObject, eventdata, handles)
 % hObject    handle to pause (see GCBO)
@@ -249,7 +233,7 @@ function pause_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 pause(handles.player);
 
-% Reprendre la lecture
+%POUR RESUME LA MUSIQUE
 % --- Executes on button press in resume.
 function resume_Callback(hObject, eventdata, handles)
 % hObject    handle to resume (see GCBO)
@@ -257,7 +241,7 @@ function resume_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 resume(handles.player);
 
-% Réinitialisation de l'interface
+%LE RESET DU PROGRAMME
 % --- Executes on button press in reset.
 function reset_Callback(hObject, eventdata, handles)
 % hObject    handle to reset (see GCBO)
