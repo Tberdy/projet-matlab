@@ -203,13 +203,10 @@ xlabel('Time');
 ylabel('Amplitude');
 set(handles.frequencial_display,'Value',0);
 set(handles.temporal_display,'Value',1);
-%h = bode(y,Fs);
-%axes(handles.bode_axes)
-%plot(h);
 set(handles.original_wave_axes,'XColor',[1 1 1]);
 set(handles.original_wave_axes,'YColor',[1 1 1]);
 
-%POUR JOUER LA MUSIQUE AVEC LEFFET ou LES EFFETS
+% Lancement d'une piste audio en mode modifié
 % --- Executes on button press in play_effect.
 function play_effect_Callback(hObject, eventdata, handles)
 % hObject    handle to play_effect (see GCBO)
@@ -231,6 +228,20 @@ guidata(hObject,handles);
 
 % Affichage des données audio
 % 1. On sélectionne le graphe original_wave
+% 2. On affiche les données audio
+% 3. On légende le graphe
+% 4. On met de la couleur
+axes(handles.original_wave_axes)
+plot(handles.y1);
+xlabel('Time');
+ylabel('Amplitude');
+set(handles.frequencial_display,'Value',0);
+set(handles.temporal_display,'Value',1);
+set(handles.original_wave_axes,'XColor',[1 1 1]);
+set(handles.original_wave_axes,'YColor',[1 1 1]);
+
+% Affichage des données audio
+% 1. On sélectionne le graphe modified_wave
 % 2. On affiche les données audio
 % 3. On légende le graphe
 % 4. On met de la couleur
@@ -314,8 +325,12 @@ set(handles.text_flanger,'String','OFF');
 set(handles.text_flanger,'backgroundcolor',[0.5 0.5 .5]);
 set(handles.text_distortion,'String','OFF');
 set(handles.text_distortion,'backgroundcolor',[0.5 0.5 .5]);
-set(handles.text_filter1,'String','OFF');
-set(handles.text_filter1,'backgroundcolor',[0.5 0.5 .5]);
+set(handles.text_filter_low,'String','OFF');
+set(handles.text_filter_low,'backgroundcolor',[0.5 0.5 .5]);
+set(handles.text_filter_mid,'String','OFF');
+set(handles.text_filter_mid,'backgroundcolor',[0.5 0.5 .5]);
+set(handles.text_filter_high,'String','OFF');
+set(handles.text_filter_high,'backgroundcolor',[0.5 0.5 .5]);
 
 % On réinitialise les sliders à leurs positions initiales
 set(handles.slider_amplification, 'Value', 1);
@@ -660,7 +675,7 @@ end
 function echo_Callback(hObject, eventdata, handles)
 y2=handles.y2;
 data = get(handles.slider_echo,'Value');
-new_data = echoEffect(y2, handles.Fs2 ,data);
+new_data = echoEffect(y2 ,data);
 handles.y2= new_data;
 guidata(hObject,handles);
 set(handles.text_echo,'String','ON');
@@ -703,17 +718,35 @@ set(handles.text_wobble,'String','ON');
 set(handles.text_wobble,'backgroundcolor',[0.1 .7 0]);
 
 % Callback des fltres passe bas, medium et haut
-% --- Executes on button press in filter_1.
-function filter_1_Callback(hObject, eventdata, handles)
+% --- Executes on button press in filter_low.
+function filter_low_Callback(hObject, eventdata, handles)
 y2=handles.y2;
 value_slider = get(handles.slider_filter1,'Value');
-value_slider2 = get(handles.slider_filter2,'Value');
-value_slider3 = get(handles.slider_filter3,'Value');
-value_data = filter1(y2, handles.Fs2 ,value_slider, value_slider2, value_slider3,handles);
+value_data = filter_low(y2, handles.Fs2, value_slider, handles);
 handles.y2= value_data;
 guidata(hObject,handles); 
-set(handles.text_filter1,'String','ON');
-set(handles.text_filter1,'backgroundcolor',[0.1 .7 0]);
+set(handles.text_filter_low,'String','ON');
+set(handles.text_filter_low,'backgroundcolor',[0.1 .7 0]);
+
+% --- Executes on button press in filter_mid.
+function filter_mid_Callback(hObject, eventdata, handles)
+y2=handles.y2;
+value_slider2 = get(handles.slider_filter2,'Value');
+value_data = filter_mid(y2, handles.Fs2, value_slider2, handles);
+handles.y2= value_data;
+guidata(hObject,handles); 
+set(handles.text_filter_mid,'String','ON');
+set(handles.text_filter_mid,'backgroundcolor',[0.1 .7 0]);
+
+% --- Executes on button press in filter_high.
+function filter_high_Callback(hObject, eventdata, handles)
+y2=handles.y2;
+value_slider3 = get(handles.slider_filter3,'Value');
+value_data = filter_high(y2, handles.Fs2, value_slider3, handles);
+handles.y2= value_data;
+guidata(hObject,handles); 
+set(handles.text_filter_high,'String','ON');
+set(handles.text_filter_high,'backgroundcolor',[0.1 .7 0]);
 
 % Callback de l'effet atténuation
 % --- Executes on button press in attenuation.
@@ -755,21 +788,14 @@ set(handles.text_tremolo,'backgroundcolor',[0.1 .7 0]);
 % Décélération de la piste audio
 % --- Executes on slider movement.
 function slider_deceleration_Callback(hObject, eventdata, handles)
-
-% 1. Récupération de l'arrondi de la valeur du slider
 value_slider = get(handles.slider_deceleration,'Value');
-msgbox(num2str(value_slider));
-value_slider = round(value_slider);
-%Appelle de la fonction pour le filtre et change les valeurs du data et du
-%rate de la musique wav. On prend FS cette fois ci ! 
+value_slider = round(value_slider); 
 value_data = filter(1,value_slider,handles.Fs);
-%On recopie de nouveau dans les données !
 handles.Fs2= value_data;
 
 s = num2str(value_slider);
 s1 = strcat('Décélération :','  /', s);
 set(handles.text_deceleration,'String',s1);
-%On enregistre toutes ses nouvelles données!
 guidata(hObject,handles);
 % --- Executes during object creation, after setting all properties.
 function slider_deceleration_CreateFcn(hObject, eventdata, handles)
@@ -780,21 +806,14 @@ end
 % Accélération de la piste audio
 % --- Executes on slider movement.
 function slider_acceleration_Callback(hObject, eventdata, handles)
-
-%Récupération du positionnement du slider!
 value_slider = get(handles.slider_acceleration,'Value');
 value_slider = round(value_slider);
-
-%Appelle de la fonction pour le filtre et change les valeurs du data et du
-%rate de la musique wav. IDem que pour la decceleation en utilisant Fs
 value_data = filter(value_slider,1,handles.Fs);
-%On recopie de nouveau dans les données !
 handles.Fs2= value_data;
 
 s = num2str(value_slider);
 s1 = strcat('Acceleration :','  x', s);
 set(handles.text_acceleration,'String',s1);
-%On enregistre toutes ses nouvelles données!
 guidata(hObject,handles);
 % --- Executes during object creation, after setting all properties.
 function slider_acceleration_CreateFcn(hObject, eventdata, handles)

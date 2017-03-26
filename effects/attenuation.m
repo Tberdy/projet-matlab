@@ -1,11 +1,10 @@
-function effect_attenuation = attenuation(y2, value_slider)
-%Ici nous utilisons la fonction filter appartenant à matlab
-%Cette fonction contient 3 paramètres
-%Le premier c''est le coef au numérateur de la tranformée en Z
-%du signal y2!
-%Le deuxième coef c'est le dénominateur!
-%Il suffit d'augmenter le dénominateur afin de baisser l'amplitude
-%du sans modifier le reste de la musique
-%Il permet donc de faire varier l'amplitude des fréquences!
+function effetAttenuation = attenuation(y2, slider_data)
 
-effect_attenuation = filter(1,value_slider,y2);
+% On utilise la fonction filter() qui réalise la transformée en Z des
+% données audio
+% filter() filtre les données audio y2 grâce aux coefficients du 
+% numérateur (1) et du dénominateur (slider_data)
+% Si l'on augmente la valeur du slider, cela augmente la valeur du
+% coefficient du dénominateur et cela atténue la piste audio
+
+effetAttenuation = filter(1,slider_data,y2);

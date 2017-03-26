@@ -1,8 +1,13 @@
-function effect_tremolo = tremolo(y2, Fs, value_slider, value_slider2)
-%Fréquence coeff : value_slider2;
-%value_slider : coef pour l'effet
-%On fait varié l'amplitude du signal d'entree avec une boucle allant de 1 à
-%la taille du signal d'entrée.
+function effetTremolo = tremolo(y2, Fs, slider_data, slider_data2)
+
+% Pour réaliser l'effet tremolo on applique à chaque instant de la piste
+% audio une modification qui dépend de la force de l'effet (slider_data),
+% de l'intensité de l'effet (slider_data2) et du taux d'échantillonnage (Fs)
+
+% Pré-alloue la variable de retour pour optimiser le traitement
+effetTremolo = 1:length(y2);
+effetTremolo = zeros(size(effetTremolo));
+
 for i = 1:length(y2)
-    effect_tremolo(i)= y2(i)*(1+ value_slider*sin(2*pi*i*(value_slider2/Fs)))';
+    effetTremolo(i)= y2(i) * (1 + slider_data * sin(2 * pi * i * (slider_data2 / Fs)))';
 end
